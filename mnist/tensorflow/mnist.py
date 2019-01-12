@@ -1,3 +1,8 @@
+'''
+Mnist CNN
+RUN : curl -sSL https://raw.githubusercontent.com/QQ764073652/ml/master/mnist/mnist.py | python
+wget https://raw.githubusercontent.com/QQ764073652/ml/master/mnist/mnist.py && python mnist.py
+'''
 import tensorflow as tf
 mnist = tf.keras.datasets.mnist
 
