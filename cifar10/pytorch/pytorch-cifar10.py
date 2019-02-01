@@ -42,9 +42,9 @@ transform = transforms.Compose(
 
 # 在构建数据集的时候指定transform，就会应用我们定义好的transform
 # root是存储数据的文件夹，download=True指定如果数据不存在先下载数据
-cifar_train = torchvision.datasets.CIFAR10(root='/data', train=True,
+cifar_train = torchvision.datasets.CIFAR10(root='./data', train=True,
                                            download=True, transform=transform)
-cifar_test = torchvision.datasets.CIFAR10(root='/data', train=False,
+cifar_test = torchvision.datasets.CIFAR10(root='./data', train=False,
                                           transform=transform)
 trainloader = torch.utils.data.DataLoader(cifar_train, batch_size=32, shuffle=True)
 testloader = torch.utils.data.DataLoader(cifar_test, batch_size=32, shuffle=True)
