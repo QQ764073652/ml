@@ -13,7 +13,7 @@ class LeNet(nn.Module):
         # Conv2d的第一个参数是输入的channel数量，第二个是输出的channel数量，第三个是kernel size
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.conv2 = nn.Conv2d(16, 24, 5)
+        self.conv3 = nn.Conv2d(16, 24, 5)
         # 由于上一层有16个channel输出，每个feature map大小为5*5，所以全连接层的输入是16*5*5
         self.fc1 = nn.Linear(24 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
