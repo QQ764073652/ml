@@ -82,6 +82,7 @@ print("Done Training!")
 # 保存模型
 # 仅保存和加载模型参数(推荐使用)
 torch.save(net.state_dict(), 'cifar10_params.pkl')
+# 加载模型
 net.load_state_dict(torch.load('cifar10_params.pkl'))
 
 # 测试准确率
