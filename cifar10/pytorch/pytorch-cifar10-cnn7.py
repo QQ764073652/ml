@@ -81,13 +81,13 @@ print("Done Training!")
 
 # 保存模型
 # 保存整个网络
-# torch.save(net, 'pytorch_cifar10_net.pkl')
+torch.save(net, '/userhome/cifar10/pytorch_cifar10_net.pkl')
 # 加载模型到一个net
-# loadNet = torch.load('pytorch_cifar10_net.pkl')
+# loadNet = torch.load('/userhome/cifar10/pytorch_cifar10_net.pkl')
 
 # 仅保存和加载模型参数(推荐使用)
-torch.save(net.state_dict(), 'pytorch_cifar10_params.pkl')
-net.load_state_dict(torch.load('pytorch_cifar10_params.pkl'))
+torch.save(net.state_dict(), '/userhome/cifar10/pytorch_cifar10_params.pkl')
+# net.load_state_dict(torch.load('/userhome/cifar10/pytorch_cifar10_params.pkl'))
 
 # 测试准确率
 # 构造测试的dataloader

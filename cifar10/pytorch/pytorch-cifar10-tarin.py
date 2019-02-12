@@ -4,13 +4,21 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 import torch.optim as optim
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def imshow(img):
+    img = img / 2 + 0.5  # unnormalize
+    npimg = img.numpy()
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.show()
 
 
 class LeNet(nn.Module):
     # 一般在__init__中定义网络需要的操作算子，比如卷积、全连接算子等等
     def __init__(self):
         super(LeNet, self).__init__()
-        # output_shape = (image_shape-filter_shape+2*padding)/stride + 1
         # Conv2d的第一个参数是输入的channel数量，第二个是输出的channel数量，第三个是kernel size
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.conv2 = nn.Conv2d(6, 16, 5)
@@ -26,8 +34,6 @@ class LeNet(nn.Module):
         x = F.relu(self.conv1(x))
         x = self.pool(x)
         x = F.relu(self.conv2(x))
-        x = self.pool(x)
-        x = F.relu(self.conv3(x))
         x = self.pool(x)
         # 下面这步把二维特征图变为一维，这样全连接层才能处理
         x = x.view(-1, 16 * 5 * 5)
@@ -50,14 +56,33 @@ transform = transforms.Compose(
 cifar_train = torchvision.datasets.CIFAR10(root='/userhome/dataset', train=True,
                                            download=True, transform=transform)
 cifar_test = torchvision.datasets.CIFAR10(root='/userhome/dataset', train=False,
-                                          download=True, transform=transform)
+                                          transform=transform)
 trainloader = torch.utils.data.DataLoader(cifar_train, batch_size=32, shuffle=True)
 testloader = torch.utils.data.DataLoader(cifar_test, batch_size=32, shuffle=True)
 
+# 随机得到一些训练图片
+dataiter = iter(trainloader)
+images, labels = dataiter.next()
+
+# 显示图片
+imshow(torchvision.utils.make_grid(images))
+
+# 打印图片标签
+print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
+
 # 如果你没有GPU，那么可以忽略device相关的代码
 # device = torch.device("cpu:0")
-device = torch.device("cuda:0")
+# device = torch.device("cuda:0")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 net = LeNet().to(device)
+# 使用多张卡并行训练
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# if torch.cuda.device_count() > 1:
+#   print("Let's use", torch.cuda.device_count(), "GPUs!")
+# net = LeNet()
+# net = nn.DataParallel(net)
+# net.to(device)
+
 
 # CrossEntropyLoss就是我们需要的损失函数
 criterion = nn.CrossEntropyLoss()
@@ -114,3 +139,22 @@ with torch.no_grad():
 
 print('Accuracy of the network on the 10000 test images: %d %%' % (
         100 * correct / total))
+
+# 这比随机选取（即从10个类中随机选择一个类，正确率是10%）要好很多。看来网络确实学到了一些东西。
+# 那么哪些是表现好的类呢？哪些是表现的差的类呢？
+class_correct = list(0. for i in range(10))
+class_total = list(0. for i in range(10))
+with torch.no_grad():
+    for data in testloader:
+        images, labels = data
+        outputs = net(images)
+        _, predicted = torch.max(outputs, 1)
+        c = (predicted == labels).squeeze()
+        for i in range(4):
+            label = labels[i]
+            class_correct[label] += c[i].item()
+            class_total[label] += 1
+
+for i in range(10):
+    print('Accuracy of %5s : %2d %%' % (
+        classes[i], 100 * class_correct[i] / class_total[i]))
