@@ -152,7 +152,7 @@ def load_data():
     return trainloader, testloader
 
 
-def train(epoch,trainloader, net, device, criterion, optimizer):
+def train(epoch, trainloader, net, device, criterion, optimizer):
     net.train()
     train_loss = 0
     correct = 0
@@ -171,11 +171,12 @@ def train(epoch,trainloader, net, device, criterion, optimizer):
         correct += predicted.eq(targets).sum().item()
         acc = 100. * correct / total
 
-        print("epoch %f train batch %f batch size %f " %(epoch,batch_idx, len(trainloader)), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        print("epoch %f train batch %f batch size %f " % (epoch, batch_idx, len(trainloader)),
+              'Loss: %.3f | Acc: %.3f%% (%d/%d)'
               % (train_loss / (batch_idx + 1), acc, correct, total))
 
 
-def test(epoch,testloader, net, device, criterion):
+def test(epoch, testloader, net, device, criterion):
     net.eval()
     test_loss = 0
     correct = 0
@@ -190,7 +191,8 @@ def test(epoch,testloader, net, device, criterion):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
             acc = 100. * correct / total
-            print("epoch %f test batch %f batch size %f " % (epoch,batch_idx, len(testloader)), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            print("epoch %f test batch %f batch size %f " % (epoch, batch_idx, len(testloader)),
+                  'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                   % (test_loss / (batch_idx + 1), acc, correct, total))
 
     acc = 100. * correct / total
@@ -213,14 +215,16 @@ def main():
         cudnn.benchmark = True
     criterion = nn.CrossEntropyLoss()
     # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
-    optimizer = AdaBound(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+    optimizer = AdaBound(net.parameters(), lr=0.001, betas=(0.9, 0.999),
+                         final_lr=0.1, gamma=1e-3, weight_decay=5e-4)
 
     trainloader, testloader = load_data()
     for epoch in range(40):
-        train(epoch,trainloader, net, device, criterion, optimizer)
-        test(epoch,testloader, net, device, criterion)
+        train(epoch, trainloader, net, device, criterion, optimizer)
+        test(epoch, testloader, net, device, criterion)
 
     save(net)
+
 
 if __name__ == '__main__':
     main()
