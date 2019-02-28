@@ -151,7 +151,7 @@ def load_data():
     return trainloader, testloader
 
 
-def train(trainloader, net, device, criterion, optimizer):
+def train(epoch,trainloader, net, device, criterion, optimizer):
     net.train()
     train_loss = 0
     correct = 0
@@ -170,11 +170,11 @@ def train(trainloader, net, device, criterion, optimizer):
         correct += predicted.eq(targets).sum().item()
         acc = 100. * correct / total
 
-        print("train batch %f batch size %f " %(batch_idx, len(trainloader)), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        print("epoch %f train batch %f batch size %f " %(epoch,batch_idx, len(trainloader)), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
               % (train_loss / (batch_idx + 1), acc, correct, total))
 
 
-def test(testloader, net, device, criterion):
+def test(epoch,testloader, net, device, criterion):
     net.eval()
     test_loss = 0
     correct = 0
@@ -189,7 +189,7 @@ def test(testloader, net, device, criterion):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
             acc = 100. * correct / total
-            print("test batch %f batch size %f " % (batch_idx, len(testloader)), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            print("epoch %f test batch %f batch size %f " % (epoch,batch_idx, len(testloader)), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                   % (test_loss / (batch_idx + 1), acc, correct, total))
 
     acc = 100. * correct / total
@@ -214,8 +214,10 @@ def main():
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
 
     trainloader, testloader = load_data()
-    train(trainloader, net, device, criterion, optimizer)
-    test(testloader, net, device, criterion)
+    for epoch in range(40):
+        train(epoch,trainloader, net, device, criterion, optimizer)
+        test(epoch,testloader, net, device, criterion)
+
     save(net)
 
 if __name__ == '__main__':
