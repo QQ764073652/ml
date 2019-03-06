@@ -5,7 +5,6 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 import torch.optim as optim
-from tensorboardX import SummaryWriter
 
 class LeNet(nn.Module):
     # 一般在__init__中定义网络需要的操作算子，比如卷积、全连接算子等等
@@ -89,10 +88,6 @@ torch.save(net, '/userhome/cifar10/pytorch_cifar10_net.pkl')
 # 仅保存和加载模型参数(推荐使用)
 torch.save(net.state_dict(), '/userhome/cifar10/pytorch_cifar10_params.pkl')
 # net.load_state_dict(torch.load('/userhome/cifar10/pytorch_cifar10_params.pkl'))
-
-writer = SummaryWriter(log_dir="./logs/",comment="cifar10-cnn7")
-with writer:
-    writer.add_graph(net,input_to_model=torch.rand(1,3,32,32))
 
 # 测试准确率
 # 构造测试的dataloader
