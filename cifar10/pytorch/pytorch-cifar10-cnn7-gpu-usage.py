@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 import torch.optim as optim
-
+import numpy as np
 class LeNet(nn.Module):
     # 一般在__init__中定义网络需要的操作算子，比如卷积、全连接算子等等
     def __init__(self):
@@ -58,54 +58,53 @@ net = LeNet().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-print("Start Training...")
-for epoch in range(30):
-    # 我们用一个变量来记录每100个batch的平均loss
-    loss100 = 0.0
-    # 我们的dataloader派上了用场
-    for i, data in enumerate(trainloader):
-        inputs, labels = data
-        inputs, labels = inputs.to(device), labels.to(device)  # 注意需要复制到GPU
-        optimizer.zero_grad()
-        outputs = net(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-        loss100 += loss.item()
-        if i % 100 == 99:
-            print('[Epoch %d, Batch %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, loss100 / 100))
-            loss100 = 0.0
+'''model size'''
+type_size=4
+para = sum([np.prod(list(p.size())) for p in net.parameters()])
+print('Model {} : params: {:4f}M'.format(net._get_name(), para * type_size / 1000 / 1000))
 
-print("Done Training!")
+# print("Start Training...")
+# for epoch in range(30):
+#     # 我们用一个变量来记录每100个batch的平均loss
+#     loss100 = 0.0
+#     # 我们的dataloader派上了用场
+#     for i, data in enumerate(trainloader):
+#         inputs, labels = data
+#         inputs, labels = inputs.to(device), labels.to(device)  # 注意需要复制到GPU
+#         optimizer.zero_grad()
+#         outputs = net(inputs)
+#         loss = criterion(outputs, labels)
+#         loss.backward()
+#         optimizer.step()
+#         loss100 += loss.item()
+#         if i % 100 == 99:
+#             print('[Epoch %d, Batch %5d] loss: %.3f' %
+#                   (epoch + 1, i + 1, loss100 / 100))
+#             loss100 = 0.0
+for i, data in enumerate(trainloader):
+    inputs, labels = data
+    break
 
-# 保存模型
-# 保存整个网络
-torch.save(net, '/userhome/cifar10/pytorch_cifar10_net.pkl')
-# 加载模型到一个net
-# loadNet = torch.load('/userhome/cifar10/pytorch_cifar10_net.pkl')
+mods = list(net.modules())
+out_sizes = []
+for i in range(1, len(mods)):
+    m = mods[i]
+    # 注意这里，如果relu激活函数是inplace则不用计算
+    if isinstance(m, nn.ReLU):
+        if m.inplace:
+            continue
+    out = m(inputs)
+    out_sizes.append(np.array(out.size()))
+    print(np.array(out.size()))
+    inputs = out
 
-# 仅保存和加载模型参数(推荐使用)
-torch.save(net.state_dict(), '/userhome/cifar10/pytorch_cifar10_params.pkl')
-# net.load_state_dict(torch.load('/userhome/cifar10/pytorch_cifar10_params.pkl'))
-
-# 测试准确率
-# 构造测试的dataloader
-dataiter = iter(testloader)
-# 预测正确的数量和总数量
-correct = 0
-total = 0
-# 使用torch.no_grad的话在前向传播中不记录梯度，节省内存
-with torch.no_grad():
-    for data in testloader:
-        images, labels = data
-        images, labels = images.to(device), labels.to(device)
-        # 预测
-        outputs = net(images)
-        # 我们的网络输出的实际上是个概率分布，去最大概率的哪一项作为预测分类
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-
-print('Accuracy of the network on the 10000 test images: %d %%' % (
-        100 * correct / total))
+total_nums = 0
+for i in range(len(out_sizes)):
+    s = out_sizes[i]
+    nums = np.prod(np.array(s))
+    total_nums += nums
+# 打印两种，只有 forward 和 foreward、backward的情况
+print('Model {} : intermedite variables: {:3f} M (without backward)'
+        .format(net._get_name(), total_nums * type_size / 1000 / 1000))
+print('Model {} : intermedite variables: {:3f} M (with backward)'
+        .format(net._get_name(), total_nums * type_size*2 / 1000 / 1000))
